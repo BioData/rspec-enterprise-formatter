@@ -8,5 +8,4 @@ It is useful when you have large number of rspec testcases with different owners
 rspec -r ./lib/splithtml_formatter.rb ./lib/splithtml_printer.rb -f SplithtmlFormatter spec/sample_spec.rb
 
 ### Dependence
-ruby 1.8.7
-
+rspec 2.14
