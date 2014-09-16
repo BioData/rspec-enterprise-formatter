@@ -18,10 +18,12 @@ describe "Two failed cases test" do
 
     it "failed test1" do
         puts "this line from failed test1"
+        0/0
     end
     
     it "failed test2" do
         puts "this line from failed test2"
+        0/0
     end
     
     it "passed test2" do
@@ -71,6 +73,8 @@ describe "Logger test" do
     it "passed test7" do
         puts "this line from passed test7"
     end
+    
+    it "pending test1"
     
 end
 

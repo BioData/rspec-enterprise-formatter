@@ -1,4 +1,4 @@
-require 'rspec/core/formatters/base_text_formatter'
+require 'rspec/core/formatters/base_formatter'
 
 PREFIX = "spec"
 
@@ -18,10 +18,16 @@ class FileOutput
 
 end
 
-class SplithtmlFormatter < RSpec::Core::Formatters::BaseTextFormatter
-
+class SplithtmlFormatter < RSpec::Core::Formatters::BaseFormatter
+  
+  RSpec::Core::Formatters.register self, :start, :example_group_started, :start_dump,
+                            :example_started, :example_passed, :example_failed,
+                            :example_pending, :dump_summary
+    
+    
     def initialize(output)
         super(output)
+        @failed_examples = []
         @example_group_number = 0
         @example_number = 0
         @failure_number = 0
@@ -70,8 +76,8 @@ public
         super(example_count)
     end
 
-    def example_group_started(example_group)
-        super(example_group)
+    def example_group_started(notification)
+        super
         @start_time = Time.now().to_f()
         @example_number = 0
         @failure_number = 0
@@ -80,40 +86,38 @@ public
         @run_time = 0.0
         @example_group_red = false
         @example_group_number += 1
-        test_file_name = File.basename(example_group.metadata[:example_group][:file_path])
-        @printer = new_html(example_group.description.to_s)
+        test_file_name = File.basename(notification.group.file_path)
+        @printer = new_html(notification.group.description.to_s)
         @printer.print_html_start(test_file_name)
-        @printer.print_example_group_start(example_group.description)
+        @printer.print_example_group_start(notification.group.description)
         @printer.flush()
         debug_print("start:" + @printer.object_id.to_s)
     end
     
-    def example_group_finished(example_group)
-        super(example_group)
+    def example_group_finished(notification)
+        super
         @printer.print_example_group_end()
-        test_file_path = File.expand_path(example_group.metadata[:example_group][:file_path])
+        test_file_path = File.expand_path(notification.group.file_path)
         @end_time = Time.now().to_f()
         @printer.print_summary(false, @run_time, @example_number, @failure_number, @pending_number, test_file_path, @start_time, @end_time)
         @printer.flush()
         debug_print("finished:" + @printer.object_id.to_s)
     end
 
-    def example_started(example)
-        super(example)
+    def example_started(notification)
         @example_number += 1
         @printer.print_example_start()
     end
 
-    def example_passed(example)
+    def example_passed(passed)
         @printer.move_progress(100)
-        @printer.print_example_passed( example.description, example.execution_result[:run_time] )
+        @printer.print_example_passed( passed.example.description, passed.example.execution_result.run_time )
         @printer.flush()
-        @run_time += example.execution_result[:run_time]
+        @run_time += passed.example.execution_result.run_time
     end
     
-    def example_failed(example)
-        super(example)
-
+    def example_failed(failure)
+        @failed_examples << failure.example
         unless @header_red
             @header_red = true
             @printer.make_header_red
@@ -126,43 +130,44 @@ public
 
         @printer.move_progress(100)
 
-        exception = example.metadata[:execution_result][:exception]
+        example = failure.example
+        exception = failure.exception
         exception_details = if exception
         {
           :message => exception.message,
-          :backtrace => format_backtrace(exception.backtrace, example).join("\n")
+          :backtrace => failure.formatted_backtrace.join("\n")
         }
         else
             false
         end
-        
         extra = extra_failure_content(exception)
-
-        @printer.print_example_failed(
-            example.execution_result[:pending_fixed],
-            example.description,
-            example.execution_result[:run_time],
-            @failed_examples.size,
-            exception_details,
-            (extra == "") ? false : extra,
-            true
-        )
-
+        debug_print("extra: #{extra}")
+       @printer.print_example_failed(
+          example.execution_result.pending_fixed,
+          example.description,
+          example.execution_result.run_time,
+          @failed_examples.size,
+          exception_details,
+          (extra == "") ? false : extra,
+          true
+          )
         @printer.flush()
         @failure_number += 1
-        @run_time += example.execution_result[:run_time]
+        @run_time += example.execution_result.run_time
     end
     
-    def example_pending(example)
+    def example_pending(pending)
+       example = pending.example
         @printer.make_header_yellow unless @header_red
         @printer.make_example_group_header_yellow(example_group_number) unless @example_group_red
         @printer.move_progress(100)
-        @printer.print_example_pending( example.description, example.metadata[:execution_result][:pending_message] )
+        @printer.print_example_pending( example.description, example.execution_result.pending_message)
         @printer.flush()
         @pending_number += 1
-        @run_time += example.execution_result[:run_time]
+        @run_time += example.execution_result.run_time
     end
     
+    # support for https://github.com/railsware/rspec-example_steps
     def example_step_started(example, type, message, options)
         example_started(example)
     end
@@ -187,7 +192,7 @@ public
 
         @printer.move_progress(100)
 
-        exception = example.metadata[:execution_result][:exception]
+        exception = example.exception
         exception_details = if exception
         {
           :message => exception.message,
@@ -198,7 +203,7 @@ public
         end
 
         @printer.print_example_failed(
-            example.execution_result[:pending_fixed],
+            example.execution_result.pending_fixed,
             type.to_s().upcase() + ' ' + message,
             0,
             @failed_examples.size,
@@ -220,24 +225,24 @@ public
         @pending_number += 1
     end
    
-    def extra_failure_content(exception)
-        require 'rspec/core/formatters/snippet_extractor'
-        backtrace = exception.backtrace.map {|line| backtrace_line(line)}
-        backtrace.compact!
-        @snippet_extractor ||= RSpec::Core::Formatters::SnippetExtractor.new
-        "    <pre class=\"ruby\"><code>#{@snippet_extractor.snippet(backtrace)}</code></pre>"
+    def extra_failure_content(failure)
+      RSpec::Support.require_rspec_core "formatters/snippet_extractor"
+      backtrace = failure.exception.backtrace.map {|line| RSpec.configuration.backtrace_formatter.backtrace_line(line)}
+      backtrace.compact!
+      @snippet_extractor ||= RSpec::Core::Formatters::SnippetExtractor.new
+      "    <pre class=\"ruby\"><code>#{@snippet_extractor.snippet(backtrace)}</code></pre>"
     end
 
-    def start_dump
-    end
+    #def start_dump
+    #end
     
-    def dump_failures
-    end
+    #def dump_failures
+    #end
 
-    def dump_pending
-    end
+    #def dump_pending
+    #end
 
-    def dump_summary(duration, example_count, failure_count, pending_count)
-    end
+    #def dump_summary(duration, example_count, failure_count, pending_count)
+    #end
     
 end
