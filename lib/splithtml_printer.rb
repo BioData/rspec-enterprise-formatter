@@ -38,7 +38,7 @@ public
         $stdout = @captured_io
         $stderr = @captured_io
     end
-    
+
     def print_example_group_end()
         logs = @captured_io.string
         unless logs.empty?
@@ -49,15 +49,15 @@ public
           @output.puts "      </div>"
           @output.puts "    </dd>"
         end
-        
+
         @output.puts "  </dl>"
         @output.puts "</div>"
     end
-    
+
     def print_example_start()
 
     end
-    
+
     def print_example_end()
         @captured_io.flush()
         @captured_io.string = @captured_io.string.gsub(/</, '&lt;')
@@ -68,15 +68,40 @@ public
         return logs
     end
 
-    def print_example_passed( description, run_time )
+    def header
+      'style="background: gray;color: white;width: 200px;font-size: 16px;line-height: 18px;border:1px solid black"'
+    end
+
+    def content
+      'style="width: 400px;font-size: 16px;line-height: 18px;border:1px solid black"'
+    end
+
+    def print_example_passed( description,notes, run_time )
+      # @output.puts "    <dd class=\"example passed\">"
+      # @output.puts "      <span class=\"passed_spec_name\">#{h(description)}</span>"
+      # @output.puts "      <span class=\"duration\">#{formatted_run_time}s</span>"
+      # @output.puts "      <div class=\"console_log\">"
+      # @output.puts "        <pre>#{print_example_end()}</pre>"
+      # @output.puts "      </div>"
+      # @output.puts "    </dd>"
+
         formatted_run_time = sprintf("%.5f", run_time) if run_time
-        @output.puts "    <dd class=\"example passed\">"
-        @output.puts "      <span class=\"passed_spec_name\">#{h(description)}</span>"
-        @output.puts "      <span class=\"duration\">#{formatted_run_time}s</span>"
-        @output.puts "      <div class=\"console_log\">"
-        @output.puts "        <pre>#{print_example_end()}</pre>"
-        @output.puts "      </div>"
-        @output.puts "    </dd>"
+        @@spec_number ||= 0
+        @@spec_number += 1
+        @output.puts "<br/><table style='border-collapse:collapse; border:1px solid black'>"
+        @output.puts "<tr>"
+        @output.puts "<td #{header}> Requirement # </td>"
+        @output.puts "<td #{content}> #{@@spec_number} </td>"
+        @output.puts "</tr>"
+        @output.puts "<tr>"
+        @output.puts "<td #{header}> Description </td>"
+        @output.puts "<td #{content}> #{h(description)} </td>"
+        @output.puts "</tr>"
+        @output.puts "<tr>"
+        @output.puts "<td #{header}> Notes </td>"
+        @output.puts "<td #{content}> #{notes}</td>"
+        @output.puts "</tr>"
+        @output.puts "</table>"
     end
 
     def print_example_failed( pending_fixed, description, run_time, failure_id, exception, extra_content, escape_backtrace = false )
@@ -86,11 +111,11 @@ public
         @output.puts "    <dd class=\"example #{pending_fixed ? 'pending_fixed' : 'failed'}\">"
         @output.puts "      <span class=\"failed_spec_name\">#{h(description)}</span>"
         @output.puts "      <span class=\"duration\">#{formatted_run_time}s</span>"
-        
+
         @output.puts "      <div class=\"console_log\">"
         @output.puts "        <pre>#{print_example_end()}</pre>"
         @output.puts "      </div>"
-        
+
         @output.puts "      <div class=\"failure\" id=\"failure_#{failure_id}\">"
         if exception
             @output.puts "        <div class=\"message\"><pre>#{h(exception[:message])}</pre></div>"
@@ -121,7 +146,7 @@ public
         formatted_duration = sprintf("%.5f", duration)
         @output.puts "<script type=\"text/javascript\">document.getElementById('duration').innerHTML = \"Finished in <strong>#{formatted_duration} seconds</strong>\";</script>"
         @output.puts "<script type=\"text/javascript\">document.getElementById('totals').innerHTML = \"#{totals}\";</script>"
-        
+
         if failure_count != 0
             @output.puts "<p status=\"failed\"><span style=\"visibility:hidden\">#{failure_count}</span></p>"
         elsif pending_count != 0
@@ -137,11 +162,11 @@ public
         @output.puts "</body>"
         @output.puts "</html>"
     end
-    
+
     def print_start_time(time)
         @output.puts "<p time=\"start_time\"><span style=\"visibility:hidden\">#{time}</span></p>"
     end
-        
+
     def print_end_time(time)
         @output.puts "<p time=\"end_time\"><span style=\"visibility:hidden\">#{time}</span></p>"
     end
@@ -391,12 +416,12 @@ a {
   color: #BE5C00;
 }
 
-pre {  
-    white-space: pre-wrap;       /* css-3 */ 
-    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */ 
-    white-space: -pre-wrap;      /* Opera 4-6 */ 
-    white-space: -o-pre-wrap;    /* Opera 7 */ 
-    word-wrap: break-word;       /* Internet Explorer 5.5+ */ 
+pre {
+    white-space: pre-wrap;       /* css-3 */
+    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
+    white-space: -pre-wrap;      /* Opera 4-6 */
+    white-space: -o-pre-wrap;    /* Opera 7 */
+    word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
 
 /* Ruby code, style similar to vibrant ink */
@@ -465,4 +490,3 @@ EOF
 EOF
 
 end
-

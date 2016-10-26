@@ -3,15 +3,15 @@ require 'rspec/core/formatters/base_formatter'
 PREFIX = "spec"
 
 class FileOutput
-    
+
     def initialize(file_name)
         @f = File.open(file_name, "w")
     end
-    
+
     def puts(text)
         @f.puts(text)
     end
-    
+
     def flush()
         @f.flush()
     end
@@ -19,12 +19,12 @@ class FileOutput
 end
 
 class SplithtmlFormatter < RSpec::Core::Formatters::BaseFormatter
-  
+
   RSpec::Core::Formatters.register self, :start, :example_group_started, :start_dump,
                             :example_started, :example_passed, :example_failed,
                             :example_pending, :dump_summary
-    
-    
+
+
     def initialize(output)
         super(output)
         @failed_examples = []
@@ -43,7 +43,7 @@ private
 
     def method_missing(m, *a, &b)
     end
-    
+
     def new_html(description)
         debug_print("description:" + description)
         basename = "#{description.gsub(/[^a-zA-Z0-9]+/, '-')}"
@@ -53,8 +53,8 @@ private
         basedir = ENV['HTML_REPORTS'] || File.expand_path("#{Dir.getwd}/#{PREFIX.downcase}/reports")
         debug_print("basedir:" + basedir)
         FileUtils.mkdir_p(basedir)
-        full_path = "#{basedir}/#{PREFIX.upcase}-#{basename}" 
-        debug_print("full_path:" + full_path)  
+        full_path = "#{basedir}/#{PREFIX.upcase}-#{basename}"
+        debug_print("full_path:" + full_path)
         suffix = "html"
         filename = [full_path, suffix].join(".")
         i = 0
@@ -93,7 +93,7 @@ public
         @printer.flush()
         debug_print("start:" + @printer.object_id.to_s)
     end
-    
+
     def example_group_finished(notification)
         super
         @printer.print_example_group_end()
@@ -111,11 +111,13 @@ public
 
     def example_passed(passed)
         @printer.move_progress(100)
-        @printer.print_example_passed( passed.example.description, passed.example.execution_result.run_time )
+        description = passed.example.description.split(";").first
+        notes = passed.example.full_description.split(";").last
+        @printer.print_example_passed(description, notes,  passed.example.execution_result.run_time )
         @printer.flush()
         @run_time += passed.example.execution_result.run_time
     end
-    
+
     def example_failed(failure)
         @failed_examples << failure.example
         unless @header_red
@@ -155,7 +157,7 @@ public
         @failure_number += 1
         @run_time += example.execution_result.run_time
     end
-    
+
     def example_pending(pending)
        example = pending.example
         @printer.make_header_yellow unless @header_red
@@ -166,12 +168,12 @@ public
         @pending_number += 1
         @run_time += example.execution_result.run_time
     end
-    
+
     # support for https://github.com/railsware/rspec-example_steps
     def example_step_started(example, type, message, options)
         example_started(example)
     end
-    
+
     def example_step_passed(example, type, message, options)
         @printer.move_progress(100)
         @printer.print_example_passed( type.to_s().upcase() + ' ' + message, 0 )
@@ -179,7 +181,7 @@ public
     end
 
     def example_step_failed(example, type, message, options)
-        
+
         unless @header_red
             @header_red = true
             @printer.make_header_red
@@ -224,7 +226,7 @@ public
         @printer.flush()
         @pending_number += 1
     end
-   
+
     def extra_failure_content(failure)
       RSpec::Support.require_rspec_core "formatters/snippet_extractor"
       backtrace = failure.exception.backtrace.map {|line| RSpec.configuration.backtrace_formatter.backtrace_line(line)}
@@ -235,7 +237,7 @@ public
 
     #def start_dump
     #end
-    
+
     #def dump_failures
     #end
 
@@ -244,5 +246,5 @@ public
 
     #def dump_summary(duration, example_count, failure_count, pending_count)
     #end
-    
+
 end
