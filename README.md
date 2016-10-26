@@ -1,4 +1,6 @@
-rspec-html-formator
+Enterprise Format
+Based on  rspec-html-formator
+https://github.com/chenhaiq/rspec-html-formatter
 ===================
 
 Extended html formator for rspec. It create seperate html file for each rspec test script.
