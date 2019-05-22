@@ -22,10 +22,10 @@ public
     def print_html_start(test_file_name)
         @output.puts HTML_HEADER
         @output.puts "<div class=\"rspec-report\">"
-        @output.puts "<div id=\"rspec-header\">"
-        @output.puts " <div id=\"label\">"
-        @output.puts "   <h1>#{test_file_name}</h1>"
-        @output.puts " </div>"
+        #@output.puts "<div id=\"rspec-header\">"
+        #@output.puts " <div id=\"label\">"
+        #@output.puts "   <h1>#{test_file_name}</h1>"
+        #@output.puts " </div>"
         @output.puts REPORT_HEADER
     end
 
