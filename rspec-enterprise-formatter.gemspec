@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name        = 'rspec-enterprise-formatter'
-  s.version     = '0.0.1'
+  s.version     = '0.0.2'
   s.summary     = "create seperate html file for each rspec script"
   s.description = "Extended html formator for rspec. It create seperate html file for each rspec test script."
   s.authors     = ["chenhaiq", "Zhang Yuan"]
