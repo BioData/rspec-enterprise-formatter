@@ -89,7 +89,7 @@ public
         test_file_name = File.basename(notification.group.file_path)
         @printer = new_html(notification.group.description.to_s)
         @printer.print_html_start(test_file_name)
-        @printer.print_example_group_start(notification.group.description)
+        @printer.print_example_group_start(@example_group_number,notification.group.description)
         @printer.flush()
         debug_print("start:" + @printer.object_id.to_s)
     end
@@ -111,9 +111,11 @@ public
 
     def example_passed(passed)
         @printer.move_progress(100)
-        description = passed.example.description.split(";").first
-        notes = passed.example.full_description.split(";").last
-        @printer.print_example_passed(description, notes,  passed.example.execution_result.run_time )
+        res = passed.example.description.split(";")
+        spec_req_number = "FRS-" + "#{res[0]}"
+        description = res[1]
+        notes = res[2]
+        @printer.print_example_passed(@example_number, spec_req_number, description, notes,  passed.example.execution_result.run_time )
         @printer.flush()
         @run_time += passed.example.execution_result.run_time
     end
