@@ -29,11 +29,11 @@ public
         @output.puts REPORT_HEADER
     end
 
-    def print_example_group_start(description)
+    def print_example_group_start(example_group_number, description)
+        @ex_gropu_num = example_group_number
         @output.puts "<div id=\"div_group_0\" class=\"example_group passed\">"
         @output.puts "  <dl #{indentation_style(1)}>"
-        @output.puts "  <dt id=\"example_group_0\" class=\"passed\">#{h(description)}</dt>"
-
+        @output.puts "  <dt id=\"example_group_0\" class=\"passed\"> #{h(example_group_number)}.#{h(description)}</dt>"
         @captured_io = StringIO.new()
         $stdout = @captured_io
         $stderr = @captured_io
@@ -76,7 +76,7 @@ public
       'style="width: 400px;font-size: 16px;line-height: 18px;border:1px solid black"'
     end
 
-    def print_example_passed( description,notes, run_time )
+    def print_example_passed( spec_number, spec_req_number,description,notes, run_time )
       # @output.puts "    <dd class=\"example passed\">"
       # @output.puts "      <span class=\"passed_spec_name\">#{h(description)}</span>"
       # @output.puts "      <span class=\"duration\">#{formatted_run_time}s</span>"
@@ -84,14 +84,12 @@ public
       # @output.puts "        <pre>#{print_example_end()}</pre>"
       # @output.puts "      </div>"
       # @output.puts "    </dd>"
-
         formatted_run_time = sprintf("%.5f", run_time) if run_time
-        @@spec_number ||= 0
-        @@spec_number += 1
+        @output.puts "<span class=\"passed_spec_number\" style='font-size: 13px;'>#{@ex_gropu_num}.#{spec_number}</span>"
         @output.puts "<br/><table style='border-collapse:collapse; border:1px solid black'>"
         @output.puts "<tr>"
         @output.puts "<td #{header}> Requirement # </td>"
-        @output.puts "<td #{content}> #{@@spec_number} </td>"
+        @output.puts "<td #{content}><b>#{spec_req_number}</b></td>"
         @output.puts "</tr>"
         @output.puts "<tr>"
         @output.puts "<td #{header}> Description </td>"
@@ -204,6 +202,7 @@ private
         "style=\"margin-left: #{(number_of_parents - 1) * 15}px;\""
     end
 
+
     REPORT_HEADER = <<-EOF
 </div>
 
@@ -273,7 +272,7 @@ function assign_display_style(classname, display_flag) {
 EOF
 
 GLOBAL_STYLES = <<-EOF
-#rspec-header {
+ #rspec-header {
   background: #65C400; color: #fff; height: 4em;
 }
 
@@ -283,7 +282,9 @@ GLOBAL_STYLES = <<-EOF
   font-family: "Lucida Grande", Helvetica, sans-serif;
   font-size: 1.8em;
   position: absolute;
+
 }
+
 
 #label {
   float:left;
@@ -313,6 +314,7 @@ GLOBAL_STYLES = <<-EOF
 .example_group {
   margin: 0 10px 5px;
   background: #fff;
+
 }
 
 dl {
@@ -321,9 +323,9 @@ dl {
 }
 
 dt {
-  padding: 3px;
-  background: #65C400;
-  color: #fff;
+  padding: 10px 0px;
+  color: #fffff;
+  font-size: 20px;
   font-weight: bold;
 }
 
@@ -402,6 +404,10 @@ dt.failed {
   font-size: 12px;
 }
 
+.passed_spec_number {
+  padding: 25px 0px 25px 0px;
+}
+
 a {
   color: #BE5C00;
 }
@@ -413,6 +419,8 @@ pre {
     white-space: -o-pre-wrap;    /* Opera 7 */
     word-wrap: break-word;       /* Internet Explorer 5.5+ */
 }
+
+
 
 /* Ruby code, style similar to vibrant ink */
 .ruby {
@@ -465,6 +473,7 @@ EOF
     padding: 0;
     background: #fff;
     font-size: 80%;
+
   }
   </style>
   <script type="text/javascript">
