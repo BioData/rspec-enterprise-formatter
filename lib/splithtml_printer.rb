@@ -22,10 +22,10 @@ public
     def print_html_start(test_file_name)
         @output.puts HTML_HEADER
         @output.puts "<div class=\"rspec-report\">"
-        #@output.puts "<div id=\"rspec-header\">"
-        #@output.puts " <div id=\"label\">"
-        #@output.puts "   <h1>#{test_file_name}</h1>"
-        #@output.puts " </div>"
+        # @output.puts "<div id=\"rspec-header\">"
+        # @output.puts " <div id=\"label\">"
+        # @output.puts "   <h1>#{test_file_name}</h1>"
+        @output.puts " </div>"
         @output.puts REPORT_HEADER
     end
 
@@ -33,7 +33,7 @@ public
         @ex_gropu_num = example_group_number
         @output.puts "<div id=\"div_group_0\" class=\"example_group passed\">"
         @output.puts "  <dl #{indentation_style(1)}>"
-        @output.puts "  <dt id=\"example_group_0\" class=\"passed\"> #{h(example_group_number)}.#{h(description)}</dt>"
+        @output.puts "  <dt id=\"example_group_0\" class=\"passed\"> #{h(@ex_gropu_num)}.#{h(description)}</dt>"
         @captured_io = StringIO.new()
         $stdout = @captured_io
         $stderr = @captured_io
@@ -85,10 +85,13 @@ public
       # @output.puts "      </div>"
       # @output.puts "    </dd>"
         formatted_run_time = sprintf("%.5f", run_time) if run_time
+        # @@spec_number ||= 0
+        # @@spec_number += 1
         @output.puts "<span class=\"passed_spec_number\" style='font-size: 13px;'>#{@ex_gropu_num}.#{spec_number}</span>"
         @output.puts "<br/><table style='border-collapse:collapse; border:1px solid black'>"
         @output.puts "<tr>"
         @output.puts "<td #{header}> Requirement # </td>"
+        # @output.puts "<td #{content}> #{@@spec_number} </td>"
         @output.puts "<td #{content}><b>#{spec_req_number}</b></td>"
         @output.puts "</tr>"
         @output.puts "<tr>"
@@ -202,7 +205,6 @@ private
         "style=\"margin-left: #{(number_of_parents - 1) * 15}px;\""
     end
 
-
     REPORT_HEADER = <<-EOF
 </div>
 
@@ -284,7 +286,6 @@ GLOBAL_STYLES = <<-EOF
   position: absolute;
 
 }
-
 
 #label {
   float:left;
@@ -406,6 +407,10 @@ dt.failed {
 
 .passed_spec_number {
   padding: 25px 0px 25px 0px;
+}
+
+passed.h{
+ orphans: 1
 }
 
 a {
