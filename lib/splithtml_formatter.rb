@@ -27,6 +27,7 @@ class SplithtmlFormatter < RSpec::Core::Formatters::BaseFormatter
 
     def initialize(output)
         super(output)
+        @counter = 0
         @failed_examples = []
         @example_group_number = 0
         @example_number = 0
@@ -45,6 +46,7 @@ private
     end
 
     def new_html(description)
+        @counter += 1
         debug_print("description:" + description)
         basename = "#{description.gsub(/[^a-zA-Z0-9]+/, '-')}"
         max_filename_size = (ENV['MAX_FILENAME_SIZE'] || 2**8).to_i
@@ -53,7 +55,7 @@ private
         basedir = ENV['HTML_REPORTS'] || File.expand_path("#{Dir.getwd}/#{PREFIX.downcase}/reports")
         debug_print("basedir:" + basedir)
         FileUtils.mkdir_p(basedir)
-        full_path = "#{basedir}/#{PREFIX.upcase}-#{basename}"
+        full_path = "#{basedir}/#{@counter.to_s.rjust(5, "0")}-#{PREFIX.upcase}-#{basename}"
         debug_print("full_path:" + full_path)
         suffix = "html"
         filename = [full_path, suffix].join(".")
@@ -89,7 +91,7 @@ public
         test_file_name = File.basename(notification.group.file_path)
         @printer = new_html(notification.group.description.to_s)
         @printer.print_html_start(test_file_name)
-        @printer.print_example_group_start(@example_group_number,notification.group.description)
+        @printer.print_example_group_start(@example_group_number, notification.group.description)
         @printer.flush()
         debug_print("start:" + @printer.object_id.to_s)
     end
@@ -112,7 +114,7 @@ public
     def example_passed(passed)
         @printer.move_progress(100)
         res = passed.example.description.split(";")
-        spec_req_number = "FRS-" + "#{res[0]}"
+        spec_req_number = "#{res[0]}"
         description = res[1]
         notes = res[2]
         @printer.print_example_passed(@example_number, spec_req_number, description, notes,  passed.example.execution_result.run_time )
